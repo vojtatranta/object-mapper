@@ -29,5 +29,5 @@
   "white": true,
   "asi": true,
   "validthis": true,
-  "predef": [ "window", "document" ]
+  "predef": [ "window", "document", "it", "describe", "expect", "beforeEach" ]
 }
