@@ -5,11 +5,11 @@ import gutil from 'gulp-util'
 
 
 gulp.task('default', () => {
-  gulp.start('mocha')
-  gulp.watch(['lib/**', 'test/**/*.test.js'], ['mocha'])
+  gulp.start('test')
+  gulp.watch(['lib/**', 'test/**/*.test.js'], ['test'])
 })
 
-gulp.task('mocha', () => {
+gulp.task('test', () => {
   return gulp.src(['test/*.js'], { read: false })
     .pipe(mocha({
       reporter: 'spec',

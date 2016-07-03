@@ -2,9 +2,9 @@
   "name": "object-mapper",
   "version": "0.0.1",
   "description": "Enables DB-like API over nested objects",
-  "main": "index.js",
+  "main": "src/index.js",
   "directories": {
-    "test": "test"
+    "test": "gulp test"
   },
   "dependencies": {},
   "devDependencies": {
