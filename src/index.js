@@ -1,6 +1,8 @@
+// @flow
+
 export const flatten = (array) => {
   return array.reduce((flattenedArray, item) => {
-    flattenedItem = Array.isArray(item) ? flatten(item) : item
+    const flattenedItem = Array.isArray(item) ? flatten(item) : item
     return flattenedArray.concat(flattenedItem)
   }, [])
 }
@@ -17,7 +19,7 @@ export const ensurePathInObject = (object, path, defaultValue) => {
       return object[key]
     }
 
-    if (path.length != counter) {
+    if (path.length !== counter) {
       object[key] = {}
     } else {
       object[key] = defaultValue
@@ -32,10 +34,13 @@ export const getInPath = (object, path) => {
   return path.reduce((object, key) => object[key], object)
 }
 
-//console.log(
-//  flatten([1, 2, [ 1, 2, 3 ], 3, [ 5, 6, [ 1, 2, 3 ] ]])
-//)
+export const deleteInPath = (object, path) => {
+  const parentObject = getInPath(object, path.slice(0, path.length - 1))
+  let last = path.pop()
+  delete parentObject[last]
 
+  return object
+}
 
 export class IndexedTree {
 
@@ -53,28 +58,31 @@ export class IndexedTree {
     return result[0] || null
   }
 
-  getBy(tableName, selector, first = false) {
-    if (!isObject(selector)) {
-      throw new Error(`
-        Cannot get entity:
-          Selector must be an object eg. { 'searchedByKey': keyValue } -> { 'name': 'alice' } and the key must be indexed!
-          Indexed keys are: "${this._indexes.join('')}".
-      `)
+  _normalizeSelector(maybeSelector) {
+    if (!isObject(maybeSelector)) {
+      let objectSelector = {}
+      objectSelector[this._primaryKey] = maybeSelector
+      return objectSelector
     }
+
+    return maybeSelector
+  }
+
+  getBy(tableName, selector, first = false) {
+    selector = this._normalizeSelector(selector)
 
     let result = this._getBySelector(tableName, selector)
     return first ? result[0] || null : result
   }
 
-  _getBySelector(tableName, selector, withPaths = false) {
-    if (this._indexedMap[tableName] === undefined) {
-      throw new Error(`
-        Cannot get entity: ->
-          Trying to query a table "${tableName}" that does not exist.
-      `)
-    }
+  _selectorToPath(selector) {
+    const arrayOfPaths = Object.keys(selector).map(selectorKey => [ selectorKey, selector[selectorKey] ])
 
-    const matchedPaths = Object.keys(selector).reduce((result, selectorKey) => {
+    return flatten(arrayOfPaths)
+  }
+
+  getPathsBySelector(tableName, selector) {
+    return Object.keys(selector).reduce((result, selectorKey) => {
       const indexTable = getInPath(this._indexedMap, [ tableName, selectorKey ])
       if (indexTable === undefined) {
         throw new Error(
@@ -85,16 +93,23 @@ export class IndexedTree {
       }
 
       try {
-        const pathToEntites = getInPath(this._indexedMap, [ tableName, selectorKey, selector[selectorKey] ])
-        if (pathToEntites === undefined) {
-          return result
-        } else {
-          return result.concat(pathToEntites)
-        }
+        const pathToEntites = getInPath(this._indexedMap, [ tableName, selectorKey, selector[selectorKey] ]) || []
+        return result.concat(pathToEntites)
       } catch (err) {
         return result
       }
     }, [])
+  }
+
+  _getBySelector(tableName, selector, withPaths = false) {
+    if (this._indexedMap[tableName] === undefined) {
+      throw new Error(`
+        Cannot get entity: ->
+          Trying to query a table "${tableName}" that does not exist.
+      `)
+    }
+
+    const matchedPaths = this.getPathsBySelector(tableName, selector)
 
     return matchedPaths.map(path => {
       let value = getInPath(this._tree, path)
@@ -106,7 +121,7 @@ export class IndexedTree {
     let counter = 0
     return path.reduce((tree, key) => {
       counter++
-      if (path.length == counter) {
+      if (path.length === counter) {
         tree[key] = value
       }
       return tree[key]
@@ -114,11 +129,13 @@ export class IndexedTree {
   }
 
   update(tableName, selector, updater) {
+    selector = this._normalizeSelector(selector)
+
     this._getBySelector(tableName, selector, true).forEach(object => {
       let valueToUpdate = isObject(object.value) ? Object.assign({}, object.value) : object.value
       let newValue = updater(valueToUpdate)
 
-      if (object.value[this._primaryKey] != newValue[this._primaryKey]) {
+      if (object.value[this._primaryKey] !== newValue[this._primaryKey]) {
         throw new Error(`
           Cannot update an entity: ->
             You are trying to update primary key "${this._primaryKey}"
@@ -132,24 +149,55 @@ export class IndexedTree {
     return this
   }
 
+  delete(tableName, selector) {
+    selector = this._normalizeSelector(selector)
+
+    const matchedPaths = this.getPathsBySelector(tableName, selector)
+    matchedPaths.forEach(path => deleteInPath(this._tree, path))
+
+    deleteInPath(this._indexedMap, [ tableName ].concat(this._selectorToPath(selector)))
+
+    return this
+  }
+
+  add(tableName, entity) {
+    if (entity[this._primaryKey] === undefined) {
+      throw new Error(`
+        Cannot add an entity: ->
+          Entity does not contain a primary key "${this._primaryKey}"!
+      `)
+    }
+    const newTree = {}
+    let entities = (this._tree[tableName] || []).concat(entity)
+    newTree[tableName] = entities
+    const indexes = mapObject(newTree, Object.keys(newTree), this._indexes, this._primaryKey)
+    this._indexedMap = Object.assign({}, this._indexedMap, indexes)
+
+    ensurePathInObject(this._tree, [ tableName ])
+    this._tree[tableName] = entities
+
+    return this
+  }
+
   serialize() {
     return this._tree
   }
 }
 
+export const mapObject = (object, tables, indexKeys, primaryKey) => {
+  if (!indexKeys.some(candidate => candidate === primaryKey)) {
+    indexKeys.push(primaryKey)
+  }
 
-export default function createIndexedDb(tree, indexKeys = [ 'id' ], primaryKey = 'id') {
-  const tables = Object.keys(tree)
-
-  const indexes = tables.reduce((indexes, tableName) => {
-    return tree[tableName].reduce((map, entity, entityIndex) => {
+  return tables.reduce((indexes, tableName) => {
+    return object[tableName].reduce((map, entity, entityIndex) => {
       indexKeys.forEach(key => {
         let path = [ tableName, key, entity[key] ]
         ensurePathInObject(map, path, [])
 
         let indexValues = getInPath(map, path)
 
-        if (key == primaryKey && indexValues.length == 1) {
+        if (key === primaryKey && indexValues.length === 1) {
           throw new Error(`
             Cannot create indexes: ->
               Duplicate primary key ${entity[primaryKey]} in table '${tableName}'
@@ -161,29 +209,14 @@ export default function createIndexedDb(tree, indexKeys = [ 'id' ], primaryKey =
       return map
     }, indexes)
   }, {})
+}
+
+
+export default function createMapper(tree, indexKeys = [ ], primaryKey = 'id') {
+  const tables = Object.keys(tree)
+
+
+  const indexes = mapObject(tree, tables, indexKeys, primaryKey)
 
   return new IndexedTree(tree, indexes, indexKeys, primaryKey)
 }
-
-
-const tree = {
-  'todos': [
-    {
-      'id': 12
-    },
-    {
-      id: 32
-    },
-    {
-      id: 84
-    },
-    ],
-    'people': [
-      {id: 1, 'name': 'vojta'},
-      {id: 2, name: 'honza'}
-    ]
-}
-
-const db = createIndexedDb(tree)
-db.update('todos', { id: 12 }, (entity) => Object.assign(entity, { name: 'vojta dva', mama: 'daša'}))
-console.log(db.getBy('todos', { id: 12 }, true))
