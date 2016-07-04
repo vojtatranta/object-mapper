@@ -1,4 +1,6 @@
 // @flow
+import * as objectUtils from './utils/object-utils'
+
 
 export const flatten = (array) => {
   return array.reduce((flattenedArray, item) => {
@@ -11,51 +13,14 @@ export const isObject = (value) => {
   return (value === Object(value))
 }
 
-export const ensurePathInObject = (object, path, defaultValue) => {
-  let counter = 0
-  path.reduce((object, key) => {
-    counter++
-    if (object[key] !== undefined) {
-      return object[key]
-    }
-
-    if (path.length !== counter) {
-      object[key] = {}
-    } else {
-      object[key] = defaultValue
-    }
-
-    return object[key]
-  }, object)
-  return object
-}
-
-export const getInPath = (object, path) => {
-  return path.reduce((object, key) => object[key], object)
-}
-
-export const deleteInPath = (object, path) => {
-  const parentObject = getInPath(object, path.slice(0, path.length - 1))
-  let last = path.pop()
-  delete parentObject[last]
-
-  return object
-}
 
 export class IndexedTree {
 
-  constructor(tree, indexedMap, indexes, primaryKey) {
-    this._tree = tree
+  constructor(driver, indexedMap, indexes, primaryKey) {
+    this._driver = driver
     this._indexedMap = indexedMap
     this._indexes = indexes
     this._primaryKey = primaryKey
-  }
-
-  get(tableName, primaryKeyValue) {
-    const selector = []
-    selector[this._primaryKey] = primaryKeyValue
-    let result = this._getBySelector(tableName, selector)
-    return result[0] || null
   }
 
   _normalizeSelector(maybeSelector) {
@@ -68,37 +33,10 @@ export class IndexedTree {
     return maybeSelector
   }
 
-  getBy(tableName, selector, first = false) {
-    selector = this._normalizeSelector(selector)
-
-    let result = this._getBySelector(tableName, selector)
-    return first ? result[0] || null : result
-  }
-
   _selectorToPath(selector) {
     const arrayOfPaths = Object.keys(selector).map(selectorKey => [ selectorKey, selector[selectorKey] ])
 
     return flatten(arrayOfPaths)
-  }
-
-  getPathsBySelector(tableName, selector) {
-    return Object.keys(selector).reduce((result, selectorKey) => {
-      const indexTable = getInPath(this._indexedMap, [ tableName, selectorKey ])
-      if (indexTable === undefined) {
-        throw new Error(
-          `Cannot get entity: ->
-            Database table ${tableName} was not indexed using key "${selectorKey}".
-            Try different selector with these keys: "${this._indexes.join(', ')}"`
-        )
-      }
-
-      try {
-        const pathToEntites = getInPath(this._indexedMap, [ tableName, selectorKey, selector[selectorKey] ]) || []
-        return result.concat(pathToEntites)
-      } catch (err) {
-        return result
-      }
-    }, [])
   }
 
   _getBySelector(tableName, selector, withPaths = false) {
@@ -112,20 +50,47 @@ export class IndexedTree {
     const matchedPaths = this.getPathsBySelector(tableName, selector)
 
     return matchedPaths.map(path => {
-      let value = getInPath(this._tree, path)
+      let value = this._driver.getInPath(path)
       return withPaths ? { path, value } : value
     })
   }
 
-  updateInPath(path, value) {
-    let counter = 0
-    return path.reduce((tree, key) => {
-      counter++
-      if (path.length === counter) {
-        tree[key] = value
+  getPathsBySelector(tableName, selector) {
+    return Object.keys(selector).reduce((result, selectorKey) => {
+      const indexTable = objectUtils.getInPath(this._indexedMap, [ tableName, selectorKey ])
+      if (indexTable === undefined) {
+        throw new Error(
+          `Cannot get entity: ->
+            Database table ${tableName} was not indexed using key "${selectorKey}".
+            Try different selector with these keys: "${this._indexes.join(', ')}"`
+        )
       }
-      return tree[key]
-    }, this._tree)
+
+      try {
+        const pathToEntites = objectUtils.getInPath(this._indexedMap, [ tableName, selectorKey, selector[selectorKey] ]) || []
+        return result.concat(pathToEntites)
+      } catch (err) {
+        return result
+      }
+    }, [])
+  }
+
+  updateInPath(path, value) {
+    return this._driver.updateInPath(path, value)
+  }
+
+  get(tableName, primaryKeyValue) {
+    const selector = []
+    selector[this._primaryKey] = primaryKeyValue
+    let result = this._getBySelector(tableName, selector)
+    return result[0] || null
+  }
+
+  getBy(tableName, selector, first = false) {
+    selector = this._normalizeSelector(selector)
+
+    let result = this._getBySelector(tableName, selector)
+    return first ? result[0] || null : result
   }
 
   update(tableName, selector, updater) {
@@ -133,7 +98,7 @@ export class IndexedTree {
 
     this._getBySelector(tableName, selector, true).forEach(object => {
       let valueToUpdate = isObject(object.value) ? Object.assign({}, object.value) : object.value
-      let newValue = updater(valueToUpdate)
+      let newValue = (typeof updater === 'function') ? updater(valueToUpdate) : updater
 
       if (object.value[this._primaryKey] !== newValue[this._primaryKey]) {
         throw new Error(`
@@ -153,9 +118,9 @@ export class IndexedTree {
     selector = this._normalizeSelector(selector)
 
     const matchedPaths = this.getPathsBySelector(tableName, selector)
-    matchedPaths.forEach(path => deleteInPath(this._tree, path))
+    matchedPaths.forEach(path => this._driver.deleteInPath(path))
 
-    deleteInPath(this._indexedMap, [ tableName ].concat(this._selectorToPath(selector)))
+    objectUtils.deleteInPath(this._indexedMap, [ tableName ].concat(this._selectorToPath(selector)))
 
     return this
   }
@@ -167,20 +132,20 @@ export class IndexedTree {
           Entity does not contain a primary key "${this._primaryKey}"!
       `)
     }
+
     const newTree = {}
-    let entities = (this._tree[tableName] || []).concat(entity)
+    let entities = (this._driver.getInPath([ tableName ]) || []).concat(entity)
     newTree[tableName] = entities
     const indexes = mapObject(newTree, Object.keys(newTree), this._indexes, this._primaryKey)
     this._indexedMap = Object.assign({}, this._indexedMap, indexes)
 
-    ensurePathInObject(this._tree, [ tableName ])
-    this._tree[tableName] = entities
+    this._driver.addInPath([ tableName ], entity)
 
     return this
   }
 
-  serialize() {
-    return this._tree
+  getTree() {
+    return this._driver.getTree()
   }
 }
 
@@ -193,9 +158,9 @@ export const mapObject = (object, tables, indexKeys, primaryKey) => {
     return object[tableName].reduce((map, entity, entityIndex) => {
       indexKeys.forEach(key => {
         let path = [ tableName, key, entity[key] ]
-        ensurePathInObject(map, path, [])
+        objectUtils.ensurePathInObject(map, path, [])
 
-        let indexValues = getInPath(map, path)
+        let indexValues = objectUtils.getInPath(map, path)
 
         if (key === primaryKey && indexValues.length === 1) {
           throw new Error(`
@@ -212,11 +177,11 @@ export const mapObject = (object, tables, indexKeys, primaryKey) => {
 }
 
 
-export default function createMapper(tree, indexKeys = [ ], primaryKey = 'id') {
+export default function createMapper(driver, indexKeys = [], primaryKey = 'id') {
+  let tree = driver.getTree()
   const tables = Object.keys(tree)
-
 
   const indexes = mapObject(tree, tables, indexKeys, primaryKey)
 
-  return new IndexedTree(tree, indexes, indexKeys, primaryKey)
+  return new IndexedTree(driver, indexes, indexKeys, primaryKey)
 }
