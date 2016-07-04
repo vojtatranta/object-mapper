@@ -3,7 +3,6 @@ import mocha from 'gulp-mocha'
 import notify from 'gulp-notify'
 import gutil from 'gulp-util'
 import plumber from 'gulp-plumber'
-import flow from 'gulp-flowtype'
 
 
 gulp.task('default', () => {
@@ -11,7 +10,7 @@ gulp.task('default', () => {
   gulp.watch(['src/**', 'test/**/*.test.js'], ['test'])
 })
 
-gulp.task('test', [ 'flow' ], () => {
+gulp.task('test', () => {
   return gulp.src(['test/_globals.js', 'test/*.js'], { read: false })
     .pipe(plumber({errorHandler: notify.onError("Error: <%= error.message %>")}))
     .pipe(mocha({
@@ -25,7 +24,3 @@ gulp.task('test', [ 'flow' ], () => {
     })
 })
 
-gulp.task('flow', () => {
-  return gulp.src('src/**')
-  .pipe(flow({}))
-})
