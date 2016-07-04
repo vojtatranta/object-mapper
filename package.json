@@ -1,6 +1,6 @@
 {
   "name": "object-indexed-map",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": "https://github.com/vojtatranta/object-mapper",
   "description": "Enables DB-like API over nested objects",
   "main": "lib/index.js",
@@ -27,8 +27,7 @@
     "dev": "gulp",
     "test": "gulp test",
     "prepublish": "npm run build",
-    "flow": "flow; test $? -eq 0 -o $? -eq 2",
-    "test": "gulp test"
+    "flow": "flow; test $? -eq 0 -o $? -eq 2"
   },
   "author": "Vojta Tranta <vojta.tranta@gmail.com>",
   "license": "ISC"
