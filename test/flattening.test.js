@@ -1,4 +1,4 @@
-import * as indexDb from '../src/index'
+import * as indexDb from '../src/tree-indexed-mapper'
 
 
 describe('flattening', () => {
