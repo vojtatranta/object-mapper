@@ -1,12 +1,12 @@
 import createMapper, { IndexedTree } from '../src/index'
-import ObjectTreeImmutableDriver from '../src/entity-drivers/object-tree-mutable-driver'
+import ObjectTreeMmutableDriver from '../src/entity-drivers/object-tree-mutable-driver'
 
 
 describe('MutableDriverMapper', () => {
   let testTree = null
 
   it('should create an IndexedTree instance', () => {
-    expect(createMapper(new ObjectTreeImmutableDriver({}))).toBeA(IndexedTree)
+    expect(createMapper(new ObjectTreeMmutableDriver({}))).toBeA(IndexedTree)
   })
 
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe('MutableDriverMapper', () => {
   })
 
   it('should map a test object', () => {
-    const db = createMapper(new ObjectTreeImmutableDriver(testTree))
+    const db = createMapper(new ObjectTreeMmutableDriver(testTree))
 
     expect(db.get('todos', 12)).toBe(testTree['todos'][0])
     expect(db.get('todos', 84)).toBe(testTree['todos'][2])
@@ -42,11 +42,13 @@ describe('MutableDriverMapper', () => {
 
     expect(db.get('people', 2)).toBe(testTree['people'][1])
     expect(db.get('people', 1)).toBe(testTree['people'][0])
+
+    expect(db.get('people')).toBe(testTree['people'])
   })
 
 
   it('should mutate tree based on passed object directly', () => {
-    const db = createMapper(new ObjectTreeImmutableDriver(testTree))
+    const db = createMapper(new ObjectTreeMmutableDriver(testTree))
 
     let nextValue = {
       id: 1,
@@ -59,22 +61,24 @@ describe('MutableDriverMapper', () => {
 
     expect(testTree['people'][0]).toBe(nextValue)
     expect(db.get('people', 1).name).toBe('vojta tranta')
+    expect(db.get('people')).toBe(testTree['people'])
   })
 
 
   it('should delete an entity from original tree', () => {
-    const db = createMapper(new ObjectTreeImmutableDriver(testTree))
+    const db = createMapper(new ObjectTreeMmutableDriver(testTree))
 
     db.delete('people', 2)
 
     expect(db.get('people', 1)).toBe(testTree['people'][0])
     expect(db.get('people', '2')).toBe(null)
+    expect(db.get('people')).toBe(testTree['people'])
     expect(testTree['people'][1]).toBe(undefined)
   })
 
 
   it('should add an entity to tree', () => {
-    const db = createMapper(new ObjectTreeImmutableDriver(testTree))
+    const db = createMapper(new ObjectTreeMmutableDriver(testTree))
 
     const nextPerson = {
       id: '3123',
@@ -95,11 +99,12 @@ describe('MutableDriverMapper', () => {
     let anotherEntityFromDb = db.get('people', 331)
     expect(testTree['people'][3]).toBe(anotherPerson)
     expect(anotherEntityFromDb).toBe(anotherPerson)
+    expect(db.get('people')).toBe(testTree['people'])
   })
 
 
   it('should index tree by other key but primary', () => {
-    const db = createMapper(new ObjectTreeImmutableDriver(testTree), [ 'name' ])
+    const db = createMapper(new ObjectTreeMmutableDriver(testTree), [ 'name' ])
 
     expect(() => {
       db.getBy('people', { noKey: 1 })
@@ -112,7 +117,23 @@ describe('MutableDriverMapper', () => {
   })
 
   it('should return original tree', () => {
-    const db = createMapper(new ObjectTreeImmutableDriver(testTree))
+    const db = createMapper(new ObjectTreeMmutableDriver(testTree))
+
+    expect(db.getTree()).toBe(testTree)
+
+    const nextPerson = {
+      id: '3123',
+      name: 'Standa'
+    }
+    db.add('people', nextPerson)
+
+    let nextValue = {
+      id: 1,
+      name: 'vojta tranta'
+    }
+    db.update('people', { id: '1' }, () => nextValue)
+
+    db.delete('people', 2)
 
     expect(db.getTree()).toBe(testTree)
   })
