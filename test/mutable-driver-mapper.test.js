@@ -1,5 +1,5 @@
 import createMapper, { IndexedTree } from '../src/index'
-import ObjectTreeMmutableDriver from '../src/entity-drivers/object-tree-mutable-driver'
+import ObjectTreeMmutableDriver from '../src/entity-drivers/object-mutable-tree-driver'
 
 
 describe('MutableDriverMapper', () => {
