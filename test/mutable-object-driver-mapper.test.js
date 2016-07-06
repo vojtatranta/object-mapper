@@ -3,7 +3,7 @@ import TreeIndexedMapper from '../src/tree-indexed-mapper'
 import ObjectMutableTreeDriver from '../src/entity-drivers/object-mutable-tree-driver'
 
 
-describe('MutableDriverMapper', () => {
+describe('MutableObjectDriverMapper', () => {
   let testTree = null
 
   it('should create an TreeIndexedMapper instance', () => {
@@ -24,8 +24,7 @@ describe('MutableDriverMapper', () => {
         {
           id: 84,
           'text': 'Todo num 86'
-        },84
-        ],
+        }],
         'people': [
           {id: 1, 'name': 'vojta'},
           {id: 2, name: 'honza'}
