@@ -146,25 +146,39 @@ export default class TreeIndexedMapper {
     const matchedPaths = this.getPathsBySelector(tableName, selector)
     matchedPaths.forEach(path => this._driver.deleteInPath(path))
 
-    objectUtils.deleteInPath(this._indexedMap, [ tableName ].concat(this._selectorToPath(selector)))
+    this._indexedMap = this._remapEntities(tableName, this._driver.getInPath([ tableName ]))
 
     return this
   }
 
+  _remapEntities(tableName, entities) {
+    const newTree = {}
+    newTree[tableName] = entities
+    const indexes = mapObject(newTree, Object.keys(newTree), this._indexes, this._primaryKey)
+    return Object.assign({}, this._indexedMap, indexes)
+  }
+
   add(tableName, entity) {
-    if (entity[this._primaryKey] === undefined) {
+    let primaryKeyValue = entity[this._primaryKey]
+
+    if (primaryKeyValue === undefined) {
       throw new Error(`
         Cannot add an entity: ->
-          Entity does not contain a primary key "${this._primaryKey}"!
+          Entity does not contain a primary key: "${this._primaryKey}"!
       `)
     }
 
-    const newTree = {}
-    let entities = (this._driver.getInPath([ tableName ]) || []).concat(entity)
-    newTree[tableName] = entities
-    const indexes = mapObject(newTree, Object.keys(newTree), this._indexes, this._primaryKey)
-    this._indexedMap = Object.assign({}, this._indexedMap, indexes)
+    let existingEntity = this.get(tableName, primaryKeyValue)
 
+    if (existingEntity) {
+      throw new Error(`
+        Cannot add an entity: ->
+          Duplicated value of primary key "${this._primaryKey}:${primaryKeyValue}" in existing entity ${existingEntity}!
+      `)
+    }
+
+    let entities = (this._driver.getInPath([ tableName ]) || []).concat([ entity ])
+    this._indexedMap = this._remapEntities(tableName, entities)
     this._driver.addInPath([ tableName ], entity)
 
     return this
