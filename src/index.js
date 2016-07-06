@@ -9,10 +9,6 @@ export const flatten = (array) => {
   }, [])
 }
 
-export const isObject = (value) => {
-  return (value === Object(value))
-}
-
 
 export class IndexedTree {
 
@@ -24,7 +20,7 @@ export class IndexedTree {
   }
 
   _normalizeSelector(maybeSelector) {
-    if (!isObject(maybeSelector)) {
+    if (!objectUtils.isObject(maybeSelector)) {
       let objectSelector = {}
       objectSelector[this._primaryKey] = maybeSelector
       return objectSelector
@@ -79,7 +75,11 @@ export class IndexedTree {
     return this._driver.updateInPath(path, value)
   }
 
-  get(tableName, primaryKeyValue) {
+  get(tableName, primaryKeyValue = null) {
+    if (primaryKeyValue === null) {
+      return this._driver.getInPath([ tableName ])
+    }
+
     const selector = []
     selector[this._primaryKey] = primaryKeyValue
     let result = this._getBySelector(tableName, selector)
@@ -97,7 +97,7 @@ export class IndexedTree {
     selector = this._normalizeSelector(selector)
 
     this._getBySelector(tableName, selector, true).forEach(object => {
-      let valueToUpdate = isObject(object.value) ? Object.assign({}, object.value) : object.value
+      let valueToUpdate = objectUtils.isObject(object.value) ? Object.assign({}, object.value) : object.value
       let newValue = (typeof updater === 'function') ? updater(valueToUpdate) : updater
 
       if (object.value[this._primaryKey] !== newValue[this._primaryKey]) {

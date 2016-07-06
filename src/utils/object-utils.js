@@ -28,3 +28,7 @@ export const deleteInPath = (object, path) => {
 export const getInPath = (object, path) => {
   return path.reduce((object, key) => object[key], object)
 }
+
+export const isObject = (value) => {
+  return (value === Object(value))
+}
