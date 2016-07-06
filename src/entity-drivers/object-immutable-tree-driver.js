@@ -46,7 +46,7 @@ export default class ObjectTreeMutableDriver extends IEntityTreeDriver {
         let nextSubValue = typeof targetValue === 'function' ? targetValue(tree[key], tree, key) : targetValue
         if (nextSubValue === undefined) {
           if (Array.isArray(tree)) {
-            tree.splice(key, key + 1)
+            tree.splice(key, String(key) === '0' ? 1 : key)
           } else {
             delete tree[key]
           }
