@@ -18,6 +18,7 @@
     "gulp-notify": "^2.2.0",
     "gulp-plumber": "^1.1.0",
     "gulp-util": "^3.0.7",
+    "immutable": "^3.8.1",
     "mocha": "^2.5.3",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"

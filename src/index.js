@@ -1,9 +1,9 @@
 import TreeIndexedMapper, { mapObject } from './tree-indexed-mapper'
 
 
-export default function createMapper(driver, indexKeys = [], primaryKey = 'id') {
+export default function createMapper(driver, indexKeys = [], tables = null, primaryKey = 'id') {
   let tree = driver.getTree()
-  const tables = Object.keys(tree)
+  tables = tables || Object.keys(tree)
 
   const indexes = mapObject(tree, tables, indexKeys, primaryKey)
 
