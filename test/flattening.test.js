@@ -1,26 +1,24 @@
+import test from 'ava'
+
 import * as indexDb from '../src/index'
 
 
-describe('flattening', () => {
-  it('leave a flat array untouched', () => {
-    const array = [1, 2, 3]
-    expect(indexDb.flatten(array)).toEqual(array)
-  })
-
-  it('should flatten an array with one level of nesting', () => {
-    const array = [1, [ 2, 3 ], 4, [ 5, 6 ], 7]
-    expect(indexDb.flatten(array)).toEqual([ 1, 2, 3, 4, 5, 6, 7 ])
-  })
-
-  it('should flatten array with two levels of neseting', () => {
-    const array = [1, [ 2, 3, [ 4, 5, 6 ] ], 7]
-    expect(indexDb.flatten(array)).toEqual([ 1, 2, 3, 4, 5, 6, 7 ])
-  })
-
-  it('should flatten array with four levels of nesting', () => {
-    const array = [1, [ 2, 3, [ 4, 5, 6, [ 7, 8, [ 9, 10 ]], 11] ], 12]
-    expect(indexDb.flatten(array)).toEqual([ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ])
-  })
+test('leave a flat array untouched', t => {
+  const array = [1, 2, 3]
+  t.deepEqual(indexDb.flatten(array), array)
 })
 
+test('should flatten an array with one level of nesting', t => {
+  const array = [1, [ 2, 3 ], 4, [ 5, 6 ], 7]
+  t.deepEqual(indexDb.flatten(array), [ 1, 2, 3, 4, 5, 6, 7 ])
+})
 
+test('should flatten array with two levels of neseting', t => {
+  const array = [1, [ 2, 3, [ 4, 5, 6 ] ], 7]
+  t.deepEqual(indexDb.flatten(array), [ 1, 2, 3, 4, 5, 6, 7 ])
+})
+
+test('should flatten array with four levels of nesting', t => {
+  const array = [1, [ 2, 3, [ 4, 5, 6, [ 7, 8, [ 9, 10 ]], 11] ], 12]
+  t.deepEqual(indexDb.flatten(array), [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ])
+})
