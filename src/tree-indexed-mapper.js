@@ -18,9 +18,17 @@ export const mapObject = (object, tables, indexKeys, primaryKey) => {
     return object[tableName].reduce((map, entity, entityIndex) => {
       indexKeys.forEach(key => {
         let path = [ tableName, key, entity[key] ]
+        if (key === primaryKey && !entity[primaryKey]) {
+          throw new Error(`
+            Cannot create indexes: ->
+              Primary key ${primaryKey} of entity ${entity} has a falsy value: ${entity[primaryKey]}!
+          `)
+        }
+
         objectUtils.ensurePathInObject(map, path, [])
 
         let indexValues = objectUtils.getInPath(map, path)
+
 
         if (key === primaryKey && indexValues.length === 1) {
           throw new Error(`
@@ -101,8 +109,8 @@ export default class TreeIndexedMapper {
     return this._driver.updateInPath(path, value)
   }
 
-  get(tableName, primaryKeyValue = null) {
-    if (primaryKeyValue === null) {
+  get(tableName, primaryKeyValue = undefined) {
+    if (primaryKeyValue === undefined) {
       return this._driver.getInPath([ tableName ])
     }
 
