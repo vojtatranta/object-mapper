@@ -116,7 +116,7 @@ describe('MutableObjectDriverMapper', () => {
     expect(db.getBy('people', { name: 'vojta' }, true)).toBe(testTree['people'][0])
   })
 
-  it('should return original tree', () => {
+  it('should return whole tree', () => {
     const db = createMapper(new ObjectMutableTreeDriver(testTree))
 
     expect(db.getTree()).toBe(testTree)
@@ -126,6 +126,8 @@ describe('MutableObjectDriverMapper', () => {
       name: 'Standa'
     }
     db.add('people', nextPerson)
+    expect(db.getTree()).toBe(testTree)
+    expect(db.getTree().people.length).toBe(3)
 
     let nextValue = {
       id: 1,
@@ -136,6 +138,7 @@ describe('MutableObjectDriverMapper', () => {
     db.delete('people', 2)
 
     expect(db.getTree()).toBe(testTree)
+    expect(db.getTree().people.length).toBe(2)
   })
 
 })
