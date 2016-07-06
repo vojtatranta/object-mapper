@@ -2,7 +2,7 @@ import IEntityTreeDriver from './ientity-tree-driver'
 import * as objectUtils from '../utils/object-utils'
 
 
-export default class ObjectTreeMutationDriver extends IEntityTreeDriver {
+export default class ObjectTreeMutableDriver extends IEntityTreeDriver {
   constructor(tree) {
     super(tree)
   }
