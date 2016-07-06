@@ -9,4 +9,4 @@ $ npm i object-indexed-map
 ```
 
 ## Example of usage
-Take a look at the [example](https://github.com/vojtatranta/object-mapper/blob/master/example/index.js) or [at the tests](https://github.com/vojtatranta/object-mapper/blob/master/test/mapper.test.js).
+Take a look at the [example](https://github.com/vojtatranta/object-mapper/blob/master/example/index.js) or [at the tests](https://github.com/vojtatranta/object-mapper/blob/master/test/).
