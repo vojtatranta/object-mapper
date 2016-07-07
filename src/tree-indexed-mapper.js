@@ -131,7 +131,7 @@ export default class TreeIndexedMapper {
     selector = this._normalizeSelector(selector)
 
     this._getBySelector(tableName, selector, true).forEach(object => {
-      let valueToUpdate = objectUtils.isObject(object.value) ? Object.assign({}, object.value) : object.value
+      let valueToUpdate = objectUtils.isObject(object.value) ? {...object.value} : object.value
       let newValue = (typeof updater === 'function') ? updater(valueToUpdate) : updater
 
       if (object.value[this._primaryKey] !== newValue[this._primaryKey]) {
@@ -163,7 +163,7 @@ export default class TreeIndexedMapper {
     const newTree = {}
     newTree[tableName] = entities
     const indexes = mapObject(newTree, Object.keys(newTree), this._indexes, this._primaryKey)
-    return Object.assign({}, this._indexedMap, indexes)
+    return {...this._indexedMap, ...indexes}
   }
 
   add(tableName, entity) {

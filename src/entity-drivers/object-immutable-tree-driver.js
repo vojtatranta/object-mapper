@@ -8,7 +8,7 @@ export const recreateStructure = (objectOrArray) => {
   }
 
   if (objectUtils.isObject(objectOrArray)) {
-    return Object.assign({}, objectOrArray)
+    return {...objectOrArray}
   }
 }
 
@@ -36,7 +36,7 @@ export default class ObjectTreeMutableDriver extends IEntityTreeDriver {
 
   _walkPathInTree(path, targetValue) {
     let counter = 0
-    let tree = Object.assign({}, this._tree)
+    let tree = {...this._tree}
 
     path.reduce((tree, key) => {
       counter++

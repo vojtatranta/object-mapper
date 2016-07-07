@@ -4,7 +4,8 @@
     "jsx": true,
     "arrowFunctions": true,
     "blockBindings": true,
-    "generators": true
+    "generators": true,
+    "experimentalObjectRestSpread": true
   },
   "rules": {
     "strict": 1,
@@ -25,6 +26,7 @@
     "camelcase": 1,
     "new-cap": [1, { "capIsNew": false }],
     "no-undef": 2,
+    "no-unused-vars": true,
     "semi": 0,
     "esversion": 6
   },
