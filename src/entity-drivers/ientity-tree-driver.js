@@ -7,7 +7,7 @@ class IEntityTreeDriver {
   }
 
   /*
-    @return {*} tree
+    @return {*}
   */
   getTree() {
     return this._tree
@@ -15,7 +15,7 @@ class IEntityTreeDriver {
 
   /*
     @param {Array} path
-    @return {*} tree
+    @return {*}
   */
   getInPath(path) {
     throw new Error(`
@@ -28,7 +28,7 @@ class IEntityTreeDriver {
   /*
     @param {Array} path
     @param {Object} newValue
-    @return {*} tree
+    @return {*}
   */
   updateInPath(path, newValue) {
     throw new Error(`
@@ -40,7 +40,7 @@ class IEntityTreeDriver {
 
   /*
     @param {Array} path
-    @return {*} tree
+    @return {*}
   */
   deleteInPath(path) {
     throw new Error(`
@@ -53,7 +53,7 @@ class IEntityTreeDriver {
   /*
     @param {Array} path
     @param {Object} entity
-    @return {*} tree
+    @return {*}
   */
   addInPath(path, entity) {
     throw new Error(`
