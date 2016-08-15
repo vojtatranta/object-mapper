@@ -1,4 +1,3 @@
-// @flow
 import * as objectUtils from './utils/object-utils'
 
 
@@ -9,37 +8,51 @@ export const flatten = (array) => {
   }, [])
 }
 
-export const mapObject = (object, tables, indexKeys, primaryKey) => {
-  if (!indexKeys.some(candidate => candidate === primaryKey)) {
-    indexKeys.push(primaryKey)
+export const entityMapToIndexes = (entityMap, tables, indexKeys, primaryKey) => {
+  return tables.reduce((indexMap, tableName) => {
+    entityMap[tableName].forEach(({ path, entity }) => {
+      indexKeys.forEach(currentIndexKey => {
+        indexMap = addEntityToIndexMap(entity, path, tableName, primaryKey, currentIndexKey, indexMap)
+      })
+    })
+
+    return indexMap
+  }, {})
+}
+
+const addEntityToIndexMap = (entity, pathInTree, tableName, primaryKey, currentIndexKey, indexMap) => {
+  const path = [ tableName, currentIndexKey, entity[currentIndexKey] ]
+  //console.log({ entity, path, tableName, primaryKey, currentIndexKey, entityIndex, indexMap })
+  if (currentIndexKey === primaryKey && !entity[primaryKey]) {
+    throw new Error(`
+      Cannot create indexes: ->
+        Primary key ${primaryKey} of entity ${entity} has a falsy value: ${entity[primaryKey]}!
+    `)
   }
 
+  objectUtils.ensurePathInObject(indexMap, path, [])
+
+  let indexValues = objectUtils.getInPath(indexMap, path)
+
+  if (currentIndexKey === primaryKey && indexValues.length === 1) {
+    throw new Error(`
+      Cannot create indexes: ->
+        Duplicate primary key ${entity[primaryKey]} in table '${tableName}'
+    `)
+  }
+
+  indexValues.push(pathInTree)
+
+  return indexMap
+}
+
+export const mapObject = (object, tables, indexKeys, primaryKey) => {
   return tables.reduce((indexes, tableName) => {
-    return object[tableName].reduce((map, entity, entityIndex) => {
+    return object[tableName].reduce((indexMap, entity, entityIndex) => {
       indexKeys.forEach(key => {
-        let path = [ tableName, key, entity[key] ]
-        if (key === primaryKey && !entity[primaryKey]) {
-          throw new Error(`
-            Cannot create indexes: ->
-              Primary key ${primaryKey} of entity ${entity} has a falsy value: ${entity[primaryKey]}!
-          `)
-        }
-
-        objectUtils.ensurePathInObject(map, path, [])
-
-        let indexValues = objectUtils.getInPath(map, path)
-
-
-        if (key === primaryKey && indexValues.length === 1) {
-          throw new Error(`
-            Cannot create indexes: ->
-              Duplicate primary key ${entity[primaryKey]} in table '${tableName}'
-          `)
-        }
-
-        indexValues.push([tableName, entityIndex])
-      }, map)
-      return map
+        indexMap = addEntityToIndexMap(entity, [tableName, entityIndex], tableName, primaryKey, key, indexMap)
+      }, indexMap)
+      return indexMap
     }, indexes)
   }, {})
 }

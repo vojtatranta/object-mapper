@@ -2,8 +2,22 @@ import IEntityTreeDriver from './ientity-tree-driver'
 
 
 export default class ImmutableTreeDriver extends IEntityTreeDriver {
-  constructor(tree) {
-    super(tree)
+  constructor(tree, entityMap) {
+    super(tree, entityMap)
+    if (entityMap) {
+      this._tree = this._constructTreeFromMap(entityMap)
+    }
+  }
+
+  _constructTreeFromMap(entityMap) {
+    let tree = null
+    Object.keys(entityMap).forEach(tableName => {
+      entityMap[tableName].forEach(({ path, entity }) => {
+        this._tree = this._tree.updateIn(path, () => entity)
+      })
+    })
+
+    return this._tree
   }
 
   getTree() {

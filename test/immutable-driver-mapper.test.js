@@ -17,7 +17,8 @@ const Todo = immutable.Record({
 
 const Human = immutable.Record({
   'id': null,
-  'name': ''
+  'name': '',
+  'children': immutable.List()
 })
 
 
@@ -196,4 +197,41 @@ describe('ImutableDriverMapper', () => {
     expect(db.getTree().people.size).toBe(2)
   })
 
+  describe('manual mapping', () => {
+    it('should add entities to by mapped to driver manualy', () => {
+      const child = Human({
+        'id': 2,
+        'name': 'child'
+      })
+
+      //console.log(testTree.updateIn(['people', 0, 'children', 0], () => Human({'name': 'bruu'})))
+
+      const driver = new ImmutableTreeDriver(Structure({}), {
+        'people': [
+          {
+            path: ['people', 0],
+            entity: Human({
+              'id': 1,
+              'name': 'vojta'
+            })
+          },
+          {
+            path: ['people', 0, 'children', 0],
+            entity: child
+          }
+        ]
+      })
+
+      const db = createMapper(driver, [], [ 'people' ])
+
+      expect(db.get('people', 1).get('id')).toBe(1)
+      expect(db.get('people', 1).get('name')).toBe('vojta')
+      expect(db.get('people', 1).get('children').get(0)).toBe(child)
+      expect(db.get('people', 2)).toBe(child)
+
+    })
+  })
+
 })
+
+

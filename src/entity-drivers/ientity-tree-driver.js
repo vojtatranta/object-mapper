@@ -1,9 +1,19 @@
 class IEntityTreeDriver {
   /*
     @param {*} tree
+    @param {Array<Object<path: Array, entity *>>} entityMap
   */
-  constructor(tree) {
+  constructor(tree, entityMap = null) {
     this._tree = tree
+    this._entityMap = entityMap
+  }
+
+  /*
+    @param {Object<path: Array, entity: *>} entitySchema
+    @return {Array}
+  */
+  addEntityToTree(entitySchema) {
+    return this._entityMap.push(entitySchema)
   }
 
   /*
@@ -11,6 +21,13 @@ class IEntityTreeDriver {
   */
   getTree() {
     return this._tree
+  }
+
+  /*
+    @return Array
+  */
+  getEntityMap() {
+    return this._entityMap
   }
 
   /*
