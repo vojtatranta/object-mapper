@@ -25,10 +25,6 @@ const Human = immutable.Record({
 describe('ImutableDriverMapper', () => {
   let testTree = null
 
-  it('should create an TreeIndexedMapper instance', () => {
-    expect(createMapper(new ImmutableTreeDriver({}))).toBeA(TreeIndexedMapper)
-  })
-
   beforeEach(() => {
     testTree = Structure({
       'todos': immutable.List([
@@ -56,8 +52,13 @@ describe('ImutableDriverMapper', () => {
         })
       ])
     })
-
   })
+
+
+  it('should create an TreeIndexedMapper instance', () => {
+    expect(createMapper(new ImmutableTreeDriver({}))).toBeA(TreeIndexedMapper)
+  })
+
 
   it('should map a test object', () => {
     const db = createMapper(new ImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
@@ -167,6 +168,7 @@ describe('ImutableDriverMapper', () => {
     expect(db.getBy('people', { name: 'vojta' }, true)).toBe(testTree.getIn(['people', 0]))
   })
 
+
   it('should return original tree', () => {
     const db = createMapper(new ImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
 
@@ -197,14 +199,13 @@ describe('ImutableDriverMapper', () => {
     expect(db.getTree().people.size).toBe(2)
   })
 
+
   describe('manual mapping', () => {
     it('should add entities to by mapped to driver manualy', () => {
       const child = Human({
         'id': 2,
         'name': 'child'
       })
-
-      //console.log(testTree.updateIn(['people', 0, 'children', 0], () => Human({'name': 'bruu'})))
 
       const driver = new ImmutableTreeDriver(Structure({}), {
         'people': [
@@ -231,7 +232,6 @@ describe('ImutableDriverMapper', () => {
 
     })
   })
-
 })
 
 

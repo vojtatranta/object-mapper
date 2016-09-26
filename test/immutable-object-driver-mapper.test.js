@@ -6,10 +6,6 @@ import ObjectImmutableTreeDriver from '../src/entity-drivers/object-immutable-tr
 describe('ImutableObjectDriverMapper', () => {
   let testTree = null
 
-  it('should create an TreeIndexedMapper instance', () => {
-    expect(createMapper(new ObjectImmutableTreeDriver({}))).toBeA(TreeIndexedMapper)
-  })
-
   beforeEach(() => {
     testTree = {
       'todos': [
@@ -30,8 +26,13 @@ describe('ImutableObjectDriverMapper', () => {
           {id: 2, name: 'honza'}
         ]
     }
-
   })
+
+
+  it('should create an TreeIndexedMapper instance', () => {
+    expect(createMapper(new ObjectImmutableTreeDriver({}))).toBeA(TreeIndexedMapper)
+  })
+
 
   it('should map a test object', () => {
     const db = createMapper(new ObjectImmutableTreeDriver(testTree))
@@ -155,6 +156,7 @@ describe('ImutableObjectDriverMapper', () => {
     expect(db.getBy('people', { name: 'vojta' }, true)).toBe(testTree['people'][0])
   })
 
+
   it('should return whole tree', () => {
     const db = createMapper(new ObjectImmutableTreeDriver(testTree))
 
@@ -180,5 +182,4 @@ describe('ImutableObjectDriverMapper', () => {
     expect(db.getTree()).toNotBe(testTree)
     expect(db.getTree().people.length).toBe(testTree['people'].length)
   })
-
 })

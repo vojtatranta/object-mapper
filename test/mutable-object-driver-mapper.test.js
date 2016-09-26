@@ -6,10 +6,6 @@ import ObjectMutableTreeDriver from '../src/entity-drivers/object-mutable-tree-d
 describe('MutableObjectDriverMapper', () => {
   let testTree = null
 
-  it('should create an TreeIndexedMapper instance', () => {
-    expect(createMapper(new ObjectMutableTreeDriver({}))).toBeA(TreeIndexedMapper)
-  })
-
   beforeEach(() => {
     testTree = {
       'todos': [
@@ -30,8 +26,13 @@ describe('MutableObjectDriverMapper', () => {
           {id: 2, name: 'honza'}
         ]
     }
-
   })
+
+
+  it('should create an TreeIndexedMapper instance', () => {
+    expect(createMapper(new ObjectMutableTreeDriver({}))).toBeA(TreeIndexedMapper)
+  })
+
 
   it('should map a test object', () => {
     const db = createMapper(new ObjectMutableTreeDriver(testTree))
@@ -116,6 +117,7 @@ describe('MutableObjectDriverMapper', () => {
     expect(db.getBy('people', { name: 'vojta' }, true)).toBe(testTree['people'][0])
   })
 
+
   it('should return whole tree', () => {
     const db = createMapper(new ObjectMutableTreeDriver(testTree))
 
@@ -140,5 +142,4 @@ describe('MutableObjectDriverMapper', () => {
     expect(db.getTree()).toBe(testTree)
     expect(db.getTree().people.length).toBe(2)
   })
-
 })
