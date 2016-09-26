@@ -1,6 +1,6 @@
 {
   "name": "object-indexed-map",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "repository": "https://github.com/vojtatranta/object-mapper",
   "description": "Enables DB-like API over nested objects",
   "main": "lib/index.js",
