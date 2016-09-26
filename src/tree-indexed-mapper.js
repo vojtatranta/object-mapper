@@ -166,7 +166,17 @@ export default class TreeIndexedMapper {
     const matchedPaths = this.getPathsBySelector(tableName, selector)
     matchedPaths.forEach(path => this._driver.deleteInPath(path))
 
-    this._indexedMap = this._remapEntities(tableName, this._driver.getInPath([ tableName ]))
+    const distinctRoots = matchedPaths.reduce((roots, path) => {
+      const root = path[0] 
+      if (!roots[root] && root) {
+        roots[root] = root
+      }
+      return roots
+    }, {})
+
+    Object.keys(distinctRoots).forEach(root => {
+      this._indexedMap = this._remapEntities(root, this._driver.getInPath([ root ]))
+    })
 
     return this
   }
