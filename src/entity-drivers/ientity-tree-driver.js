@@ -19,6 +19,14 @@ class IEntityTreeDriver {
   }
 
   /*
+    @param {Array} array
+    @return {*} desired array-like structure
+  */
+  asArray(array) {
+    return array
+  }
+
+  /*
     @return {*}
   */
   getTree() {

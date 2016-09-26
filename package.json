@@ -7,7 +7,9 @@
   "directories": {
     "test": "gulp test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "immutable": "^3.8.1"
+  },
   "devDependencies": {
     "babel-cli": "^6.10.1",
     "babel-core": "^6.10.4",
@@ -20,7 +22,6 @@
     "gulp-notify": "^2.2.0",
     "gulp-plumber": "^1.1.0",
     "gulp-util": "^3.0.7",
-    "immutable": "^3.8.1",
     "mocha": "^2.5.3",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"

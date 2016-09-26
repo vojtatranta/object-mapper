@@ -1,6 +1,6 @@
 import createMapper from '../src/index'
 import TreeIndexedMapper from '../src/tree-indexed-mapper'
-import ObjectImmutableTreeDriver from '../src/entity-drivers/object-immutable-tree-driver'
+import createObjectImmutableTreeDriver from '../src/entity-drivers/object-immutable-tree-driver'
 
 
 describe('ImutableObjectDriverMapper', () => {
@@ -30,12 +30,12 @@ describe('ImutableObjectDriverMapper', () => {
 
 
   it('should create an TreeIndexedMapper instance', () => {
-    expect(createMapper(new ObjectImmutableTreeDriver({}))).toBeA(TreeIndexedMapper)
+    expect(createMapper(createObjectImmutableTreeDriver({}))).toBeA(TreeIndexedMapper)
   })
 
 
   it('should map a test object', () => {
-    const db = createMapper(new ObjectImmutableTreeDriver(testTree))
+    const db = createMapper(createObjectImmutableTreeDriver(testTree))
 
     expect(db.get('todos', 12)).toBe(testTree['todos'][0])
     expect(db.get('todos', 84)).toBe(testTree['todos'][2])
@@ -50,7 +50,7 @@ describe('ImutableObjectDriverMapper', () => {
 
 
   it('should update entity in the tree', () => {
-    const db = createMapper(new ObjectImmutableTreeDriver(testTree))
+    const db = createMapper(createObjectImmutableTreeDriver(testTree))
 
     let nextValue = {
       id: 1,
@@ -73,7 +73,7 @@ describe('ImutableObjectDriverMapper', () => {
 
 
   it('should delete an entity from tree', () => {
-    const db = createMapper(new ObjectImmutableTreeDriver(testTree))
+    const db = createMapper(createObjectImmutableTreeDriver(testTree))
     let origPeopleLength = testTree['people'].length
 
     db.delete('people', 1)
@@ -103,7 +103,7 @@ describe('ImutableObjectDriverMapper', () => {
 
 
   it('should add an entity to tree', () => {
-    let driver = new ObjectImmutableTreeDriver(testTree)
+    let driver = createObjectImmutableTreeDriver(testTree)
     const db = createMapper(driver)
 
     const nextPerson = {
@@ -144,7 +144,7 @@ describe('ImutableObjectDriverMapper', () => {
 
 
   it('should index tree by other key but primary', () => {
-    const db = createMapper(new ObjectImmutableTreeDriver(testTree), [ 'name' ])
+    const db = createMapper(createObjectImmutableTreeDriver(testTree), [ 'name' ])
 
     expect(() => {
       db.getBy('people', { noKey: 1 })
@@ -158,7 +158,7 @@ describe('ImutableObjectDriverMapper', () => {
 
 
   it('should return whole tree', () => {
-    const db = createMapper(new ObjectImmutableTreeDriver(testTree))
+    const db = createMapper(createObjectImmutableTreeDriver(testTree))
 
     expect(db.getTree()).toBe(testTree)
 

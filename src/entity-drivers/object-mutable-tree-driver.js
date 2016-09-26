@@ -2,7 +2,7 @@ import IEntityTreeDriver from './ientity-tree-driver'
 import * as objectUtils from '../utils/object-utils'
 
 
-export default class ObjectTreeMutableDriver extends IEntityTreeDriver {
+class ObjectTreeMutableDriver extends IEntityTreeDriver {
   constructor(tree) {
     super(tree)
   }
@@ -82,4 +82,9 @@ export default class ObjectTreeMutableDriver extends IEntityTreeDriver {
 
     return this._tree
   }
+}
+
+
+export default (tree, entityMap, shouldCreateTree = false) => {
+  return new ObjectTreeMutableDriver(tree, entityMap, shouldCreateTree)
 }

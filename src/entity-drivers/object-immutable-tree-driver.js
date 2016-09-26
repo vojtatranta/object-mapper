@@ -12,7 +12,7 @@ export const recreateStructure = (objectOrArray) => {
   }
 }
 
-export default class ObjectTreeMutableDriver extends IEntityTreeDriver {
+class ObjectImmutableDriver extends IEntityTreeDriver {
   constructor(tree) {
     super(tree)
   }
@@ -87,4 +87,9 @@ export default class ObjectTreeMutableDriver extends IEntityTreeDriver {
 
     return this._tree
   }
+}
+
+
+export default (tree, entityMap, shouldCreateTree = false) => {
+  return new ObjectImmutableDriver(tree, entityMap, shouldCreateTree)
 }

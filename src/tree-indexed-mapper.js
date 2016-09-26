@@ -137,7 +137,7 @@ export default class TreeIndexedMapper {
     selector = this._normalizeSelector(selector)
 
     let result = this._getBySelector(tableName, selector)
-    return first ? result[0] || null : result
+    return first ? result[0] || null : this._driver.asArray(result)
   }
 
   update(tableName, selector, updater) {

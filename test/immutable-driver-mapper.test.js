@@ -2,7 +2,7 @@ import immutable from 'immutable'
 
 import createMapper from '../src/index'
 import TreeIndexedMapper from '../src/tree-indexed-mapper'
-import ImmutableTreeDriver from '../src/entity-drivers/immutable-tree-driver'
+import createImmutableTreeDriver from '../src/entity-drivers/immutable-tree-driver'
 
 
 const Structure = immutable.Record({
@@ -62,12 +62,12 @@ describe('ImutableDriverMapper', () => {
 
 
   it('should create an TreeIndexedMapper instance', () => {
-    expect(createMapper(new ImmutableTreeDriver({}))).toBeA(TreeIndexedMapper)
+    expect(createMapper(createImmutableTreeDriver({}))).toBeA(TreeIndexedMapper)
   })
 
 
   it('should map a test object', () => {
-    const db = createMapper(new ImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
+    const db = createMapper(createImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
 
     expect(db.get('todos', 12)).toBe(testTree.getIn(['todos', 0]))
     expect(db.get('todos', 84)).toBe(testTree.getIn(['todos', 2]))
@@ -82,7 +82,7 @@ describe('ImutableDriverMapper', () => {
 
 
   it('should update entity in the tree', () => {
-    const db = createMapper(new ImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
+    const db = createMapper(createImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
 
     let nextValue = Human({
       id: 1,
@@ -105,7 +105,7 @@ describe('ImutableDriverMapper', () => {
 
 
   it('should delete an entity from tree', () => {
-    const db = createMapper(new ImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
+    const db = createMapper(createImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
     let origPeopleLength = testTree['people'].size
 
     db.delete('people', 2)
@@ -122,7 +122,7 @@ describe('ImutableDriverMapper', () => {
 
 
   it('should add an entity to the tree', () => {
-    const db = createMapper(new ImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
+    const db = createMapper(createImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
 
     const nextPerson = Human({
       id: 3123,
@@ -162,7 +162,7 @@ describe('ImutableDriverMapper', () => {
 
 
   it('should index tree by other key but primary', () => {
-    const db = createMapper(new ImmutableTreeDriver(testTree), [ 'name' ], [ 'people', 'todos' ])
+    const db = createMapper(createImmutableTreeDriver(testTree), [ 'name' ], [ 'people', 'todos' ])
 
     expect(() => {
       db.getBy('people', { noKey: 1 })
@@ -170,13 +170,13 @@ describe('ImutableDriverMapper', () => {
             Database table people was not indexed using key "noKey".
             Try different selector with these keys: "name, id"`)
 
-    expect(db.getBy('people', { name: 'vojta' })[0]).toBe(testTree.getIn(['people', 0]))
+    expect(db.getBy('people', { name: 'vojta' }).first()).toBe(testTree.getIn(['people', 0]))
     expect(db.getBy('people', { name: 'vojta' }, true)).toBe(testTree.getIn(['people', 0]))
   })
 
 
   it('should return original tree', () => {
-    const db = createMapper(new ImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
+    const db = createMapper(createImmutableTreeDriver(testTree), [], [ 'people', 'todos' ])
 
     expect(db.getTree()).toBe(testTree)
 
@@ -213,7 +213,7 @@ describe('ImutableDriverMapper', () => {
         'name': 'child'
       })
 
-      const driver = new ImmutableTreeDriver(Structure({}), {
+      const driver = createImmutableTreeDriver(Structure({}), {
         'people': [
           {
             path: ['people', 0],
@@ -239,7 +239,7 @@ describe('ImutableDriverMapper', () => {
 
 
     it('should add entities mapped manually from original tree', () => {
-      const driver = new ImmutableTreeDriver(testTree, {
+      const driver = createImmutableTreeDriver(testTree, {
         'people': [
           {
             path: ['people', 0],
@@ -274,7 +274,7 @@ describe('ImutableDriverMapper', () => {
 
 
     it('should add entities mapped manually from original tree by name', () => {
-      const driver = new ImmutableTreeDriver(testTree, {
+      const driver = createImmutableTreeDriver(testTree, {
         'people': [
           {
             path: ['people', 0],
@@ -292,8 +292,8 @@ describe('ImutableDriverMapper', () => {
       })
 
       const db = createMapper(driver, ['name'], ['people'])
-      expect(db.getBy('people', { name: 'vojta' })[0].get('id')).toBe(1)
-      expect(db.getBy('people', { name: 'honza child' })[0].get('id')).toBe(3)
+      expect(db.getBy('people', { name: 'vojta' }).first().get('id')).toBe(1)
+      expect(db.getBy('people', { name: 'honza child' }).first().get('id')).toBe(3)
     })
   })
 })

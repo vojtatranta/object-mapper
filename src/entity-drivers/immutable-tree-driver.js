@@ -1,7 +1,9 @@
+import immutable from 'immutable'
+
 import IEntityTreeDriver from './ientity-tree-driver'
 
 
-export default class ImmutableTreeDriver extends IEntityTreeDriver {
+class ImmutableTreeDriver extends IEntityTreeDriver {
   constructor(tree, entityMap, shouldConstructTree = false) {
     super(tree, entityMap, shouldConstructTree)
     if (shouldConstructTree) {
@@ -48,4 +50,14 @@ export default class ImmutableTreeDriver extends IEntityTreeDriver {
     this._tree = this.updateInPath(path, entities.concat([ entity ]))
     return this._tree
   }
+
+  asArray(array) {
+    return immutable.List(array)
+  }
+}
+
+
+
+export default (tree, entityMap, shouldConstructTree = false) => {
+  return new ImmutableTreeDriver(tree, entityMap, shouldConstructTree)
 }
