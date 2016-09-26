@@ -2,9 +2,9 @@ import IEntityTreeDriver from './ientity-tree-driver'
 
 
 export default class ImmutableTreeDriver extends IEntityTreeDriver {
-  constructor(tree, entityMap) {
-    super(tree, entityMap)
-    if (entityMap) {
+  constructor(tree, entityMap, shouldConstructTree = false) {
+    super(tree, entityMap, shouldConstructTree)
+    if (shouldConstructTree) {
       this._tree = this._constructTreeFromMap(entityMap)
     }
   }

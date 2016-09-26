@@ -2,10 +2,12 @@ class IEntityTreeDriver {
   /*
     @param {*} tree
     @param {Array<Object<path: Array, entity *>>} entityMap
+    @param {boolean} shouldConstructTree
   */
-  constructor(tree, entityMap = null) {
+  constructor(tree, entityMap = null, shouldConstructTree = false) {
     this._tree = tree
     this._entityMap = entityMap
+    this._shouldConstructTree = shouldConstructTree
   }
 
   /*

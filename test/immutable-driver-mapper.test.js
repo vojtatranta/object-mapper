@@ -48,7 +48,13 @@ describe('ImutableDriverMapper', () => {
         }),
         Human({
           'id': 2,
-          'name': 'honza'
+          'name': 'honza',
+          'children': immutable.List([
+            Human({
+              'id': 3,
+              'name': 'honza child'
+            })
+          ])
         })
       ])
     })
@@ -221,7 +227,7 @@ describe('ImutableDriverMapper', () => {
             entity: child
           }
         ]
-      })
+      }, true)
 
       const db = createMapper(driver, [], [ 'people' ])
 
@@ -229,9 +235,65 @@ describe('ImutableDriverMapper', () => {
       expect(db.get('people', 1).get('name')).toBe('vojta')
       expect(db.get('people', 1).get('children').get(0)).toBe(child)
       expect(db.get('people', 2)).toBe(child)
+    })
 
+
+    it('should add entities mapped manually from original tree', () => {
+      const driver = new ImmutableTreeDriver(testTree, {
+        'people': [
+          {
+            path: ['people', 0],
+            entity: testTree.get('people').first()
+          },
+          {
+            path: ['people', 1],
+            entity: testTree.get('people').get(1)
+          },
+          {
+            path: ['people', 1, 'children', 0],
+            entity: testTree.get('people').get(1).get('children').first()
+          }
+        ]
+      })
+
+      const db = createMapper(driver, [], [ 'people' ])
+
+      expect(db.get('people', 1).get('id')).toBe(1)
+      expect(db.get('people', 1).get('name')).toBe('vojta')
+      expect(db.get('people', 2).get('id')).toBe(2)
+      expect(db.get('people', 2).get('name')).toBe('honza')
+      expect(db.get('people', 3)).toBe(testTree.get('people').get(1).get('children').first())
+
+      db.update('people', { id: 3 }, (oldChild) => oldChild.set('name', 'new name'))
+
+      expect(db.get('people', 3).get('name')).toBe('new name')
+
+      const tree = driver.getTree()
+      expect(tree.getIn([ 'people', 1, 'children', 0 ]).get('name')).toBe('new name')
+    })
+
+
+    it('should add entities mapped manually from original tree by name', () => {
+      const driver = new ImmutableTreeDriver(testTree, {
+        'people': [
+          {
+            path: ['people', 0],
+            entity: testTree.get('people').first()
+          },
+          {
+            path: ['people', 1],
+            entity: testTree.get('people').get(1)
+          },
+          {
+            path: ['people', 1, 'children', 0],
+            entity: testTree.get('people').get(1).get('children').first()
+          }
+        ]
+      })
+
+      const db = createMapper(driver, ['name'], ['people'])
+      expect(db.getBy('people', { name: 'vojta' })[0].get('id')).toBe(1)
+      expect(db.getBy('people', { name: 'honza child' })[0].get('id')).toBe(3)
     })
   })
 })
-
-

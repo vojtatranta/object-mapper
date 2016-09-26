@@ -22,7 +22,7 @@ export const entityMapToIndexes = (entityMap, tables, indexKeys, primaryKey) => 
 
 const addEntityToIndexMap = (entity, pathInTree, tableName, primaryKey, currentIndexKey, indexMap) => {
   const path = [ tableName, currentIndexKey, entity[currentIndexKey] ]
-  //console.log({ entity, path, tableName, primaryKey, currentIndexKey, entityIndex, indexMap })
+  
   if (currentIndexKey === primaryKey && !entity[primaryKey]) {
     throw new Error(`
       Cannot create indexes: ->
@@ -144,8 +144,7 @@ export default class TreeIndexedMapper {
     selector = this._normalizeSelector(selector)
 
     this._getBySelector(tableName, selector, true).forEach(object => {
-      let valueToUpdate = objectUtils.isObject(object.value) ? {...object.value} : object.value
-      let newValue = (typeof updater === 'function') ? updater(valueToUpdate) : updater
+      let newValue = (typeof updater === 'function') ? updater(object.value) : updater
 
       if (object.value[this._primaryKey] !== newValue[this._primaryKey]) {
         throw new Error(`
