@@ -21,6 +21,10 @@ export const entityMapToIndexes = (entityMap, tables, indexKeys, primaryKey) => 
 }
 
 const addEntityToIndexMap = (entity, pathInTree, tableName, primaryKey, currentIndexKey, indexMap) => {
+  if (!entity[currentIndexKey]) {
+    return indexMap
+  }
+
   const path = [ tableName, currentIndexKey, entity[currentIndexKey] ]
   
   if (currentIndexKey === primaryKey && !entity[primaryKey]) {
@@ -47,14 +51,22 @@ const addEntityToIndexMap = (entity, pathInTree, tableName, primaryKey, currentI
 }
 
 export const mapObject = (object, tables, indexKeys, primaryKey) => {
-  return tables.reduce((indexes, tableName) => {
+  let indexMap = tables.reduce((indexes, table) => {
+    indexes[table] = indexKeys.reduce((keys, key) => {
+      keys[key] = {}
+      return keys
+    }, {})
+    return indexes
+  }, {})
+
+  return tables.reduce((indexMap, tableName) => {
     return object[tableName].reduce((indexMap, entity, entityIndex) => {
       indexKeys.forEach(key => {
         indexMap = addEntityToIndexMap(entity, [tableName, entityIndex], tableName, primaryKey, key, indexMap)
       }, indexMap)
       return indexMap
-    }, indexes)
-  }, {})
+    }, indexMap)
+  }, indexMap)
 }
 
 export default class TreeIndexedMapper {
@@ -91,7 +103,6 @@ export default class TreeIndexedMapper {
     }
 
     const matchedPaths = this.getPathsBySelector(tableName, selector)
-
     return matchedPaths.map(path => {
       let value = this._driver.getInPath(path)
       return withPaths ? { path, value } : value
@@ -184,8 +195,8 @@ export default class TreeIndexedMapper {
   _remapEntities(tableName, entities) {
     const newTree = {}
     newTree[tableName] = entities
-    const indexes = mapObject(newTree, Object.keys(newTree), this._indexes, this._primaryKey)
-    return {...this._indexedMap, ...indexes}
+    const newIndexedMap = mapObject(newTree, Object.keys(newTree), this._indexes, this._primaryKey)
+    return {...this._indexedMap, ...newIndexedMap}
   }
 
   add(tableName, entity) {

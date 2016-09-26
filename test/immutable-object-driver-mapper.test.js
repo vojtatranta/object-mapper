@@ -73,13 +73,19 @@ describe('ImutableObjectDriverMapper', () => {
 
 
   it('should delete an entity from tree', () => {
-    const db = createMapper(createObjectImmutableTreeDriver(testTree))
+    const db = createMapper(createObjectImmutableTreeDriver(testTree), ['id', 'name'])
     let origPeopleLength = testTree['people'].length
 
     db.delete('people', 1)
+
+
     expect(db.get('people', 1)).toBe(null)
     expect(db.get('people', '2')).toBe(testTree['people'][1])
-    expect(db.get('people').length).toBe(origPeopleLength - 1)
+
+    db.delete('people', { name: 'honza' })
+    expect(db.getBy('people', { name: 'honza' }).length).toBe(0)
+
+    expect(db.get('people').length).toBe(origPeopleLength - 2)
 
     expect(db.get('todos')).toBe(testTree['todos'])
 

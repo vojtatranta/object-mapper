@@ -67,12 +67,15 @@ describe('MutableObjectDriverMapper', () => {
 
 
   it('should delete an entity from original tree', () => {
-    const db = createMapper(createObjectMutableTreeDriver(testTree))
+    const db = createMapper(createObjectMutableTreeDriver(testTree), ['id', 'name'])
 
     db.delete('people', 2)
-
-    expect(db.get('people', 1)).toBe(testTree['people'][0])
     expect(db.get('people', '2')).toBe(null)
+    expect(db.get('people', 1)).toBe(testTree['people'][0])
+
+    db.delete('people', { name: 'vojta' })
+    expect(db.getBy('people', { name: 'vojta' }).length).toBe(0)
+
     expect(db.get('people')).toBe(testTree['people'])
     expect(testTree['people'][1]).toBe(undefined)
   })
