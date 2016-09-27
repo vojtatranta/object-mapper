@@ -113,7 +113,9 @@ describe('ImutableDriverMapper', () => {
     expect(db.get('people', 1)).toBe(testTree.getIn(['people', 0]))
 
     db.delete('people', { name: 'vojta' })
+
     expect(db.getBy('people', { name: 'vojta' }).size).toBe(0)
+    expect(db.getBy('people', 1).size).toBe(0)
 
     expect(db.get('people').size).toBe(0)
 

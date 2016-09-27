@@ -186,16 +186,16 @@ export default class TreeIndexedMapper {
     }, {})
 
     Object.keys(distinctRoots).forEach(root => {
-      this._indexedMap = this._remapEntities(root, this._driver.getInPath([ root ]))
+      this._indexedMap = this._remapEntities(root, tableName, this._driver.getInPath([ root ]))
     })
 
     return this
   }
 
-  _remapEntities(tableName, entities) {
+  _remapEntities(root, tableName, entities) {
     const newTree = {}
-    newTree[tableName] = entities
-    const newIndexedMap = mapObject(newTree, Object.keys(newTree), this._indexes, this._primaryKey)
+    newTree[root] = entities
+    const newIndexedMap = mapObject(newTree, [tableName], this._indexes, this._primaryKey)
     return {...this._indexedMap, ...newIndexedMap}
   }
 
@@ -219,7 +219,7 @@ export default class TreeIndexedMapper {
     }
 
     let entities = (this._driver.getInPath([ tableName ]) || []).concat([ entity ])
-    this._indexedMap = this._remapEntities(tableName, entities)
+    this._indexedMap = this._remapEntities(tableName, tableName, entities)
     this._driver.addInPath([ tableName ], entity)
 
     return this
